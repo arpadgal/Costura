@@ -21,49 +21,116 @@ public class PureDotNetAssemblyTests
 
     public PureDotNetAssemblyTests()
     {
-        beforeAssemblyPath = Path.GetFullPath(@"..\..\..\AssemblyToProcessWithoutUnmanaged\bin\Debug\AssemblyToProcessWithoutUnmanaged.dll");
-        var directoryName = Path.GetDirectoryName(@"..\..\..\Debug\");
-#if (!DEBUG)
-        beforeAssemblyPath = beforeAssemblyPath.Replace("Debug", "Release");
-        directoryName = directoryName.Replace("Debug", "Release");
-#endif
+//        beforeAssemblyPath = Path.GetFullPath(@"..\..\..\AssemblyToProcessWithoutUnmanaged\bin\Debug\AssemblyToProcessWithoutUnmanaged.dll");
+//        var directoryName = Path.GetDirectoryName(@"..\..\..\Debug\");
+//#if (!DEBUG)
+//        beforeAssemblyPath = beforeAssemblyPath.Replace("Debug", "Release");
+//        directoryName = directoryName.Replace("Debug", "Release");
+//#endif
 
-        afterAssemblyPath = beforeAssemblyPath.Replace(".dll", "InMemory.dll");
-        File.Copy(beforeAssemblyPath, afterAssemblyPath, true);
-        File.Copy(beforeAssemblyPath.Replace(".dll", ".pdb"), afterAssemblyPath.Replace(".dll", ".pdb"), true);
+//        afterAssemblyPath = beforeAssemblyPath.Replace(".dll", "InMemory.dll");
+//        File.Copy(beforeAssemblyPath, afterAssemblyPath, true);
+//        File.Copy(beforeAssemblyPath.Replace(".dll", ".pdb"), afterAssemblyPath.Replace(".dll", ".pdb"), true);
 
-        var readerParams = new ReaderParameters { ReadSymbols = true };
+//        var readerParams = new ReaderParameters { ReadSymbols = true };
 
-        moduleDefinition = ModuleDefinition.ReadModule(afterAssemblyPath, readerParams);
+//        moduleDefinition = ModuleDefinition.ReadModule(afterAssemblyPath, readerParams);
 
-        var references = new List<string>
+//        var references = new List<string>
+//            {
+//                beforeAssemblyPath.Replace("AssemblyToProcessWithoutUnmanaged", "AssemblyToReference"),
+//            };
+
+//        var assemblyToReferenceDirectory = Path.GetDirectoryName(beforeAssemblyPath.Replace("AssemblyToProcessWithoutUnmanaged", "AssemblyToReference"));
+//        var assemblyToReferenceResources = Directory.GetFiles(assemblyToReferenceDirectory, "*.resources.dll", SearchOption.AllDirectories);
+//        references.AddRange(assemblyToReferenceResources);
+
+//        // This should use ILTemplate instead of ILTemplateWithUnmanagedHandler.
+//        using (var weavingTask = new ModuleWeaver
+//            {
+//                ModuleDefinition = moduleDefinition,
+//                AssemblyResolver = new MockAssemblyResolver(),
+//                Config = XElement.Parse("<Costura />"),
+//                ReferenceCopyLocalPaths = references,
+//                AssemblyFilePath = beforeAssemblyPath
+//            })
+//        {
+//            weavingTask.Execute();
+//            var writerParams = new WriterParameters { WriteSymbols = true };
+//            moduleDefinition.Write(afterAssemblyPath, writerParams);
+//        }
+
+//        var isolatedPath = Path.Combine(Path.GetTempPath(), "CosturaPureDotNetIsolatedMemory.dll");
+//        File.Copy(afterAssemblyPath, isolatedPath, true);
+//        File.Copy(afterAssemblyPath.Replace(".dll", ".pdb"), isolatedPath.Replace(".dll", ".pdb"), true);
+//        assembly = Assembly.LoadFile(isolatedPath);
+    }
+
+   [Test]
+    public void OneUiInjector()
+    {
+      beforeAssemblyPath = Path.GetFullPath(@"c:\cae\dev\OneUi\binariesToExe\OneUi\CaeOneUi.exe");
+
+      afterAssemblyPath = beforeAssemblyPath.Replace("CaeOneUi.exe", "ParametersUtility.exe");
+
+      if (File.Exists(afterAssemblyPath))
+     {
+       File.Delete(afterAssemblyPath);
+     }
+      File.Copy(beforeAssemblyPath, afterAssemblyPath, true);
+      File.Copy(beforeAssemblyPath + ".config", afterAssemblyPath + ".config", true);
+
+      var readerParams = new ReaderParameters { ReadSymbols = false };
+
+      moduleDefinition = ModuleDefinition.ReadModule(afterAssemblyPath, readerParams);
+
+      var references = new List<string>
             {
-                beforeAssemblyPath.Replace("AssemblyToProcessWithoutUnmanaged", "AssemblyToReference"),
+                beforeAssemblyPath,
             };
 
-        var assemblyToReferenceDirectory = Path.GetDirectoryName(beforeAssemblyPath.Replace("AssemblyToProcessWithoutUnmanaged", "AssemblyToReference"));
-        var assemblyToReferenceResources = Directory.GetFiles(assemblyToReferenceDirectory, "*.resources.dll", SearchOption.AllDirectories);
-        references.AddRange(assemblyToReferenceResources);
+      var assemblyToReferenceDirectory = Path.GetDirectoryName(beforeAssemblyPath);
+      var assemblyToReferenceResources = Directory.GetFiles(assemblyToReferenceDirectory, "*.dll", SearchOption.AllDirectories);
+      references.AddRange(assemblyToReferenceResources);
 
-        // This should use ILTemplate instead of ILTemplateWithUnmanagedHandler.
-        using (var weavingTask = new ModuleWeaver
-            {
-                ModuleDefinition = moduleDefinition,
-                AssemblyResolver = new MockAssemblyResolver(),
-                Config = XElement.Parse("<Costura />"),
-                ReferenceCopyLocalPaths = references,
-                AssemblyFilePath = beforeAssemblyPath
-            })
-        {
-            weavingTask.Execute();
-            var writerParams = new WriterParameters { WriteSymbols = true };
-            moduleDefinition.Write(afterAssemblyPath, writerParams);
-        }
+      // This should use ILTemplate instead of ILTemplateWithUnmanagedHandler.
+      using (var weavingTask = new ModuleWeaver
+      {
+        ModuleDefinition = moduleDefinition,
+        AssemblyResolver = new MockAssemblyResolver(),
+        Config = XElement.Parse("<Costura />"),
+        ReferenceCopyLocalPaths = references,
+        AssemblyFilePath = beforeAssemblyPath
+      })
+      {
+        weavingTask.Execute();
+        var writerParams = new WriterParameters { WriteSymbols = true };
+        moduleDefinition.Write(afterAssemblyPath, writerParams);
+      }
 
-        var isolatedPath = Path.Combine(Path.GetTempPath(), "CosturaPureDotNetIsolatedMemory.dll");
-        File.Copy(afterAssemblyPath, isolatedPath, true);
-        File.Copy(afterAssemblyPath.Replace(".dll", ".pdb"), isolatedPath.Replace(".dll", ".pdb"), true);
-        assembly = Assembly.LoadFile(isolatedPath);
+      //var isolatedPath = Path.Combine(Path.GetTempPath(), "CosturaPureDotNetIsolatedMemory.exe");
+      //File.Copy(afterAssemblyPath, isolatedPath, true);
+      //assembly = Assembly.LoadFile(isolatedPath);
+
+      ProcessStartInfo start = new ProcessStartInfo();
+      // Enter in the command line arguments, everything you would enter after the executable name itself
+      start.Arguments = string.Empty;
+      // Enter the executable to run, including the complete path
+      start.FileName = afterAssemblyPath;
+      // Do you want to show a console window?
+     // start.WindowStyle = ProcessWindowStyle.Hidden;
+     // start.CreateNoWindow = true;
+      int exitCode;
+
+
+      // Run the external process & wait for it to finish
+      using (Process proc = Process.Start(start))
+      {
+        proc.WaitForExit();
+
+        // Retrieve the app's exit code
+        exitCode = proc.ExitCode;
+      }
     }
 
     [Test]

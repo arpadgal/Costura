@@ -33,10 +33,14 @@ partial class ModuleWeaver
                     AddToList(preloadListField, resource);
                 else
                 {
-                    if (ext == "pdb")
-                        AddToDictionary(symbolNamesField, name, resource);
-                    else
-                        AddToDictionary(assemblyNamesField, name, resource);
+                  if (ext == "pdb")
+                  {
+                    // AddToDictionary(symbolNamesField, name, resource);
+                  }
+                  else
+                  {
+                    AddToDictionary(assemblyNamesField, name, resource);
+                  }
                 }
             }
             else if (parts[0] == "costura32")
